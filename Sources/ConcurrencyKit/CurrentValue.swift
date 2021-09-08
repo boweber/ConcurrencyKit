@@ -1,10 +1,21 @@
+
+// TODO: - Replace class with actor
+
 public final class CurrentValue<Value>: AsyncSequence {
     public typealias Element = Value
     public typealias AsyncIterator = AsyncStream<Value>.Iterator
     
-    public private(set) var currentValue: Value
+    public var currentValue: Value
     private var stream: AsyncStream<Value>! = nil
     private var continuation: AsyncStream<Value>.Continuation! = nil
+    
+    public var value: Value {
+        get { currentValue }
+        set {
+            currentValue = newValue
+            continuation.yield(value)
+        }
+    }
     
     public init(_ initialValue: Value) {
         currentValue = initialValue
@@ -13,16 +24,11 @@ public final class CurrentValue<Value>: AsyncSequence {
         }
     }
     
-    public func send(_ value: Value) {
-        currentValue = value
-        continuation.yield(value)
-    }
-    
     public func finish() {
         continuation.finish()
     }
     
-    public func makeAsyncIterator() -> AsyncStream<Value>.Iterator {
+    nonisolated public func makeAsyncIterator() -> AsyncStream<Value>.Iterator {
         stream.makeAsyncIterator()
     }
 }
