@@ -1,34 +1,36 @@
-
-// TODO: - Replace class with actor
-
-public final class CurrentValue<Value>: AsyncSequence {
+public actor CurrentValue<Value>: AsyncSequence {
     public typealias Element = Value
     public typealias AsyncIterator = AsyncStream<Value>.Iterator
     
-    public var currentValue: Value
-    private var stream: AsyncStream<Value>! = nil
-    private var continuation: AsyncStream<Value>.Continuation! = nil
-    
-    public var value: Value {
-        get { currentValue }
-        set {
-            currentValue = newValue
-            continuation.yield(value)
-        }
-    }
+    public private(set) var currentValue: Value
+    private let storage: Storage
     
     public init(_ initialValue: Value) {
         currentValue = initialValue
-        stream = AsyncStream { (continuation: AsyncStream<Value>.Continuation) in
-            self.continuation = continuation
-        }
+        storage = Storage()
+    }
+    
+    public func yield(_ newValue: Value) {
+        currentValue = newValue
+        storage.continuation.yield(newValue)
     }
     
     public func finish() {
-        continuation.finish()
+        storage.continuation.finish()
     }
     
     nonisolated public func makeAsyncIterator() -> AsyncStream<Value>.Iterator {
-        stream.makeAsyncIterator()
+        storage.stream.makeAsyncIterator()
+    }
+    
+    private struct Storage {
+        var stream: AsyncStream<Value>! = nil
+        var continuation: AsyncStream<Value>.Continuation! = nil
+        
+        init() {
+            stream = AsyncStream { (continuation: AsyncStream<Value>.Continuation) in
+                self.continuation = continuation
+            }
+        }
     }
 }

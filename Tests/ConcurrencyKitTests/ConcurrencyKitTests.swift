@@ -22,7 +22,9 @@ final class ConcurrencyKitTests: XCTestCase {
             try await currentValue.observedElements(after: 1)
         }
         let sendingValues = [2,3,4]
-        sendingValues.forEach { currentValue.value = $0 }
+        for value in sendingValues {
+            await currentValue.yield(value)
+        }
         let values = try await observedValues.value
         XCTAssertEqual(sendingValues, values)
     }
