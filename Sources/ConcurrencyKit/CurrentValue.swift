@@ -2,8 +2,13 @@ public actor CurrentValue<Value>: AsyncSequence {
     public typealias Element = Value
     public typealias AsyncIterator = AsyncStream<Value>.Iterator
     
-    public private(set) var currentValue: Value
+    private var currentValue: Value
     private let storage: Storage
+    
+    public var value: Value {
+        get { currentValue }
+        set { yield(newValue) }
+    }
     
     public init(_ initialValue: Value) {
         currentValue = initialValue
